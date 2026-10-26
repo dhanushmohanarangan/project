@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Tracker</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+<div class="sidebar">
+    <h2>Finance.</h2>
+    <p>Dashboard</p>
+    <p>Expenses</p>
+    <p>Invoices</p>
+    <p>Employees</p>
+    <p>Reports</p>
+</div>
+<main>
+    <h1>Dashboard</h1>
+    <p class="subtitle">Your financial overview</p>
+    <section class="card">
+        <h3>Recent Expenses</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Date</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="expense : ${expenses}">
+                <td th:text="${expense.title}"></td>
+                <td th:text="${expense.category}"></td>
+                <td th:text="${expense.amount}"></td>
+                <td th:text="${expense.expenseDate}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(expenses)}">
+                <td colspan="4">No expenses found.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>
