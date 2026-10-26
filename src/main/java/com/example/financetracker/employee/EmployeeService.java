@@ -1,4 +1,4 @@
-package employee;
+package com.example.financetracker.employee;
 
 import java.util.List;
 import java.util.Optional;
