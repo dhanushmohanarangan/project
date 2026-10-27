@@ -1,31 +1,59 @@
 package com.example.financetracker.expense;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class ExpenseService{
+public class ExpenseService {
 
-    private final ExpenseRepository expenseRepository;
+    private final ExpenseRepository repository;
 
-    public ExpenseService(ExpenseRepository expenseRepository){
-        this.expenseRepository = expenseRepository;
+    public ExpenseService(ExpenseRepository repository) {
+        this.repository = repository;
     }
 
-    public Expense saveExpense(Expense expense){
-        return expenseRepository.save(expense);
+    public Expense addExpense(Expense expense) {
+        return repository.save(expense);
     }
 
-    public List<Expense> getAllExpenses(){
-        return expenseRepository.findAll();
+    public List<Expense> getAllExpenses() {
+        return repository.findAll();
     }
 
-    public Optional<Expense> getExpenseById(long expenseId){
-        return expenseRepository.findById(expenseId);
+    public Optional<Expense> getExpenseById(Long id) {
+        return repository.findById(id);
     }
 
-    public void deleteExpense(long expenseId){
-         expenseRepository.deleteById(expenseId);
+    public Optional<Expense> updateExpense(Long id, Expense input) {
+        Optional<Expense> existingData = repository.findById(id);
+
+        if (existingData.isPresent()) {
+            Expense existing = existingData.get();
+            existing.setTitle(input.getTitle());
+            existing.setAmount(input.getAmount());
+            existing.setCategory(input.getCategory());
+            existing.setExpenseDate(input.getExpenseDate());
+            existing.setDescription(input.getDescription());
+            return Optional.of(repository.save(existing));
+        }
+
+        return Optional.empty();
+    }
+
+    public boolean deleteExpense(Long id) {
+        if (repository.existsById(id)) {
+            repository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
+    public List<Expense> getExpensesByDate(LocalDate date) {
+        return repository.findByExpenseDate(date);
+    }
+
+    public List<Expense> saveAll(List<Expense> expenses) {
+        return repository.saveAll(expenses);
     }
 }

@@ -1,46 +1,129 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://thymeleaf.org">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finance Tracker</title>
     <link rel="stylesheet" th:href="@{/style.css}">
 </head>
 <body>
-<div class="sidebar">
-    <h2>Finance.</h2>
-    <p>Dashboard</p>
-    <p>Expenses</p>
-    <p>Invoices</p>
-    <p>Employees</p>
-    <p>Reports</p>
-</div>
-<main>
-    <h1>Dashboard</h1>
-    <p class="subtitle">Your financial overview</p>
-    <section class="card">
-        <h3>Recent Expenses</h3>
-        <table>
-            <thead>
-            <tr>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Amount</th>
-                <th>Date</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="expense : ${expenses}">
-                <td th:text="${expense.title}"></td>
-                <td th:text="${expense.category}"></td>
-                <td th:text="${expense.amount}"></td>
-                <td th:text="${expense.expenseDate}"></td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(expenses)}">
-                <td colspan="4">No expenses found.</td>
-            </tr>
-            </tbody>
-        </table>
+<main class="container">
+    <h1>Finance Tracker</h1>
+
+    <p th:if="${message != null}" th:text="${message}" style="color: green;"></p>
+    <p th:if="${error != null}" th:text="${error}" style="color: red;"></p>
+
+    <section>
+        <h2>Add Expense</h2>
+        <form action="/web/expenses" method="post" class="add-form">
+            <input name="title" placeholder="Title" required>
+            <input name="amount" type="number" min="0" placeholder="Amount" required>
+            <input name="category" placeholder="Category" required>
+            <input name="expenseDate" type="date" th:value="${today}" required>
+            <input name="description" placeholder="Description">
+            <button type="submit">Add</button>
+        </form>
+    </section>
+    <section>
+        <h2>Excel</h2>
+        <div class="file-actions">
+
+            <form action="/api/excel/expenses/import" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" accept=".xlsx" required>
+                <button type="submit">Upload Excel</button>
+            </form>
+        </div>
+    </section>
+
+    <section>
+        <h2>Reports</h2>
+        <div class="file-actions">
+
+            <a href="/api/expenses/pdf/download" style="display: inline-block; margin-right: 10px;">
+                <button type="button">Download PDF</button>
+            </a>
+
+            <a href="/api/excel/expenses/export" style="display: inline-block;">
+                <button type="button">Download Excel</button>
+            </a>
+        </div>
+    </section>
+
+    <section>
+        <h2>Expenses</h2>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Amount</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="expense : ${expenses}">
+                    <td>
+                        <input th:form="'update-' + ${expense.expenseId}"
+                               name="title" th:value="${expense.title}"
+                               class="cell-input" required disabled>
+                    </td>
+                    <td>
+                        <input th:form="'update-' + ${expense.expenseId}"
+                               name="amount" type="number" min="0"
+                               th:value="${expense.amount}"
+                               class="cell-input" required disabled>
+                    </td>
+                    <td>
+                        <input th:form="'update-' + ${expense.expenseId}"
+                               name="category" th:value="${expense.category}"
+                               class="cell-input" required disabled>
+                    </td>
+                    <td>
+                        <input th:form="'update-' + ${expense.expenseId}"
+                               name="expenseDate" type="date"
+                               th:value="${expense.expenseDate}"
+                               class="cell-input" required disabled>
+                    </td>
+                    <td>
+                        <input th:form="'update-' + ${expense.expenseId}"
+                               name="description" th:value="${expense.description}"
+                               class="cell-input" disabled>
+                    </td>
+                    <td class="actions">
+
+                        <form th:id="'update-' + ${expense.expenseId}"
+                              th:action="@{/api/expenses/web/update/{id}(id=${expense.expenseId})}"
+                              method="post" style="display:inline;">
+                            <button type="button" onclick="editRow(this)">Edit</button>
+                            <button type="submit" class="save-button" hidden>Save</button>
+                        </form>
+
+                        <form th:action="@{/web/expenses/{id}/delete(id=${expense.expenseId})}"
+                              method="post" style="display:inline;">
+                            <button type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(expenses)}">
+                    <td colspan="6">No expenses found.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 </main>
+<script>
+    function editRow(button) {
+        const row = button.closest("tr");
+        row.querySelectorAll(".cell-input").forEach(input => {
+            input.disabled = false;
+        });
+        button.hidden = true;
+        row.querySelector(".save-button").hidden = false;
+    }
+</script>
 </body>
 </html>

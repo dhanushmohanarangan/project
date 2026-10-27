@@ -1,51 +1,48 @@
 package com.example.financetracker.report;
 import com.example.financetracker.expense.Expense;
-import com.example.financetracker.expense.ExpenseRepository;
-import com.example.financetracker.invoice.Invoice;
-import com.example.financetracker.invoice.InvoiceRepository;
+import com.example.financetracker.expense.ExpenseService;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Service
 public class ReportService {
-    private final ExpenseRepository expenseRepository;
-    private final InvoiceRepository invoiceRepository;
 
-    public ReportService(ExpenseRepository expenseRepository, InvoiceRepository invoiceRepository) {
-        this.expenseRepository = expenseRepository; this.invoiceRepository = invoiceRepository;
+    private final ExpenseService expenseService;
+
+    public ReportService(ExpenseService expenseService) {
+        this.expenseService = expenseService;
     }
-    public long getTotalExpenses(){
-        return expenseRepository.findAll().stream().mapToLong(Expense::getAmount).sum();
+
+    public Map<String, Long> getTotalExpenses() {
+
+        long total = 0;
+
+        for (Expense expense : expenseService.getAllExpenses()) {
+            total += expense.getAmount();
+        }
+
+        Map<String, Long> result = new HashMap<>();
+        result.put("totalExpenses", total);
+
+        return result;
     }
-    public Map<String, Long> getCategoryWiseExpenses(){
-        Map<String, Long> report = new HashMap<>();
-        List<Expense> expenses = expenseRepository.findAll();
-        for (Expense expense : expenses) {
+
+    public Map<String, Long> getCategoryWiseExpenses() {
+
+        Map<String, Long> result = new HashMap<>();
+
+        for (Expense expense : expenseService.getAllExpenses()) {
+
             String category = expense.getCategory();
-            report.put( category, report.getOrDefault(category, 0L) + expense.getAmount() );
+
+            result.put(
+                    category,
+                    result.getOrDefault(category, 0L)
+                            + expense.getAmount()
+            );
         }
-        return report;
-    }
-    public Map<String, Object> getInvoiceSummary() {
-        List<Invoice> invoices = invoiceRepository.findAll();
-        long totalAmount = 0;
-        long paidAmount = 0;
-        long pendingAmount = 0;
-        for (Invoice invoice : invoices) {
-            long amount = invoice.getTotalAmount();
-            totalAmount += amount; if ("Paid".equalsIgnoreCase(invoice.getStatus())){
-                paidAmount += amount;
-            }
-            else {
-                pendingAmount += amount;
-            }
-        }
-        Map<String, Object> report = new HashMap<>();
-        report.put("totalInvoiceAmount", totalAmount);
-        report.put("paidAmount", paidAmount);
-        report.put("pendingAmount", pendingAmount);
-        return report;
+
+        return result;
     }
 }
